@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>عراق روكت | Iraq Rocket</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#071321;color:#f4fbff;font-family:system-ui,Arial;overscroll-behavior:none}
+body{display:flex;justify-content:center;padding:10px}
+main{width:min(100%,1000px);text-align:center}
+h1{font-size:clamp(21px,4vw,30px);margin:3px 0;color:#9beaff}
+.sub{font-size:13px;color:#adc6d9;margin:0 0 8px}
+.hud{display:flex;justify-content:space-between;align-items:center;margin:7px 3px;font-weight:800}
+.score{font-size:clamp(22px,5vw,32px);color:#ffe68a;direction:ltr}
+.status{font-size:12px;color:#c2d8e8}
+.game-wrap{position:relative;overflow:hidden;border-radius:14px}
+canvas{width:100%;aspect-ratio:16/9;display:block;border:2px solid #a8e8ed;border-radius:14px;background:#16745a;touch-action:none;box-shadow:0 12px 35px #0008}
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.message{background:#061421d9;border:1px solid #8ed8e8;border-radius:14px;padding:13px 20px;font-weight:800;font-size:clamp(17px,3vw,26px);display:none}
+.controls{position:absolute;z-index:5;left:10px;right:10px;bottom:10px;display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin:0;max-width:none;direction:ltr;width:auto;padding:0 4px;pointer-events:none}
+#stickArea{order:1;margin-right:auto;pointer-events:auto}
+.controls .btns{order:2;margin-left:auto;flex-direction:row;justify-content:flex-end;pointer-events:auto}
+#stick{touch-action:none}
+.controls .action{touch-action:none}
+#stickArea{display:flex;flex-direction:column;align-items:center;gap:3px}
+#stick{width:clamp(94px,22vw,130px);height:clamp(94px,22vw,130px);border-radius:50%;background:radial-gradient(circle,#395b71,#10263a);border:3px solid #83a9c0;position:relative;touch-action:none;box-shadow:inset 0 0 14px #0009}
+#knob{position:absolute;width:42%;height:42%;left:29%;top:29%;border-radius:50%;background:linear-gradient(145deg,#d8f6ff,#418ebc);border:2px solid white;box-shadow:0 3px 9px #0008}
+.btns{display:flex;gap:8px;align-items:center}
+button{border:1px solid #a7d5e5;background:linear-gradient(150deg,#284b68,#132b43);color:white;border-radius:15px;font-weight:800;touch-action:none;user-select:none}
+.action{width:clamp(66px,16vw,92px);height:clamp(66px,16vw,92px);font-size:clamp(13px,2.5vw,17px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.action b{font-size:26px}.turbo{background:linear-gradient(145deg,#a95718,#69300e);border-color:#ffc57a}.jump{background:linear-gradient(145deg,#287ca5,#17415f);border-color:#9ce5ff}
+.tools{display:flex;gap:8px;justify-content:center;margin:9px 0}
+#fullscreen{position:absolute;z-index:7;top:10px;right:10px;padding:9px 12px;font-size:13px;background:linear-gradient(145deg,#176b54,#103b36);border-color:#9bf3cf}
+.game-wrap:fullscreen{width:100vw;height:100vh;background:#061321;border-radius:0;display:flex;align-items:center;justify-content:center}
+.game-wrap:fullscreen canvas{width:100%;height:100%;max-height:100vh;object-fit:contain;border:0;border-radius:0}
+.game-wrap:fullscreen .controls{left: max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom))}
+.game-wrap:fullscreen #fullscreen{top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right))}
+@media(max-width:600px){.controls{bottom:8px;left:7px;right:7px}.controls small{font-size:9px}#stick{width:clamp(82px,21vw,112px);height:clamp(82px,21vw,112px)}.action{width:clamp(58px,15vw,76px);height:clamp(58px,15vw,76px)}.action b{font-size:22px}}
+.tools button{padding:9px 15px;font-size:13px}
+small{font-size:11px;color:#a9c1d4}
+button:active{filter:brightness(1.35);transform:scale(.97)}
+@media(max-width:430px){body{padding:7px}.controls{gap:5px}.btns{gap:5px}}
+/* لمس للجوال، ولوحة مفاتيح/يد تحكم للكمبيوتر */
+@media (hover:hover) and (pointer:fine){.controls{display:none}#controlHelp{display:block!important}}
+@media (hover:none), (pointer:coarse){#controlHelp{display:none!important}.controls{display:flex}}
+
+.lobby{background:linear-gradient(145deg,#102b43,#071321);border:1px solid #4e829e;border-radius:18px;padding:14px;margin:12px 0;box-shadow:0 12px 35px #0007}.lobby-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.profile{display:flex;align-items:center;gap:10px;text-align:right}.avatar{font-size:34px;background:#1e4966;border-radius:13px;padding:5px 10px}.coins{color:#ffe18b;font-weight:900;background:#493b1b;padding:9px 13px;border-radius:12px}.tabs{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin:13px 0}.tabs button,.primary{padding:10px 15px;border-radius:12px;background:linear-gradient(145deg,#22658a,#14334e)}.panel{background:#091b2a;border:1px solid #31536a;border-radius:14px;padding:13px;min-height:170px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px;margin:10px 0}.item{background:#142d41;border:1px solid #36566d;border-radius:12px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:7px}.car-preview{width:64px;height:35px;border-radius:12px;border:4px solid #08121b;box-shadow:inset 0 0 0 5px var(--car);background:linear-gradient(90deg,#111,#d8f5ff);transform:skew(-12deg)}.item button{padding:8px 12px}.muted{color:#9cb8cb;font-size:12px}.progress{height:10px;background:#233c50;border-radius:9px;overflow:hidden}.progress span{display:block;height:100%;background:#43d6a0}#gameScreen{display:none}.mode-row{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin:10px 0}.mode-row button.selected{outline:2px solid #ffe18b;background:#785b24}
+</style>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body><main>
+<h1>🇮🇶 عراق روكت | Iraq Rocket</h1>
+<p class="sub">لوبي • متجر • كراج • رويال باس • كاميرا علوية تتبع الكرة</p>
+<section class="lobby" id="lobby"><div class="lobby-top"><div class="profile"><div class="avatar">🏎️</div><div><b>وليد</b><div class="muted">المستوى <span id="level">1</span> • لاعب مبتدئ</div></div></div><div class="coins">🪙 <span id="coins">500</span></div></div><div class="tabs"><button data-tab="home">🏠 اللوبي</button><button data-tab="shop">🛒 الشوب</button><button data-tab="packs">📦 الباكات</button><button data-tab="garage">🚘 السيارات</button><button data-tab="pass">🎟️ الرويال باس</button><button data-tab="servers">🌐 السيرفرات</button><button data-tab="rank">🏆 رانك</button></div><div class="panel" id="lobbyPanel"></div></section><div id="gameScreen"><div class="hud"><span>🔵 الأزرق</span><span class="score" id="score">0 - 0</span><span>🔴 الأحمر</span></div>
+<div class="game-wrap">
+<canvas id="game" width="960" height="540"></canvas>
+<button id="fullscreen" type="button">⛶ تكبير الشاشة</button>
+<div class="controls">
+ <div id="stickArea"><div id="stick"><div id="knob"></div></div><small>جوستك الحركة</small></div>
+ <div class="btns">
+  <button class="action jump" id="jump"><b>⬆</b>قفز</button>
+  <button class="action turbo" id="turbo"><b>⚡</b>تيربو</button>
+ </div>
+</div>
+<div class="overlay"><div class="message" id="message"></div></div>
+</div>
+<div class="tools"><button id="pause">إيقاف مؤقت</button><button id="reset">إعادة المباراة</button><button id="backLobby">العودة للوبي</button></div>
+<small id="controlHelp" style="display:none">الكمبيوتر: W A S D أو الأسهم للحركة • Shift للقفز • Space للتيربو • يد التحكم: العصا اليسرى للحركة و A للقفز و R2 للتيربو.</small><small id="touchHelp">الجوال: حرّك عصا اللمس، واضغط القفز والتيربو.</small>
+</div>
+</main>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+(()=>{
+const $=id=>document.getElementById(id),catalog=[{name:'الصاعقة',color:'#28c8ff',price:0,icon:'⚡'},{name:'الناري',color:'#ff594d',price:250,icon:'🔥'},{name:'الزمردي',color:'#42e39b',price:400,icon:'💚'},{name:'الذهبي',color:'#ffd34d',price:700,icon:'👑'},{name:'البنفسجي',color:'#b78cff',price:550,icon:'💜'},{name:'الثلجي',color:'#f2fbff',price:600,icon:'❄️'},{name:'الوردي',color:'#ff72c6',price:650,icon:'🌸'},{name:'الأسود النيون',color:'#343a52',price:800,icon:'🌑'},{name:'البرتقالي',color:'#ff8a32',price:500,icon:'🧡'},{name:'الفيروزي',color:'#20d6c7',price:750,icon:'🩵'},{name:'الأحمر الملكي',color:'#c9143d',price:900,icon:'❤️'}];
+let data={coins:500,owned:[0],car:0,xp:0,claimed:[],rankPoints:0};try{data={...data,...JSON.parse(localStorage.getItem('sahatProfile')||'{}')}}catch(e){};let tab='home',mode='1 ضد 1';const panel=$('lobbyPanel');
+function save(){localStorage.setItem('sahatProfile',JSON.stringify(data));render()}
+function render(){data.car=Math.min(catalog.length-1,Math.max(0,data.car||0));$('coins').textContent=data.coins;$('level').textContent=1+Math.floor(data.xp/100);
+if(tab==='home'){panel.innerHTML=`<h2>🏟️ أهلاً بك في اللوبي!</h2><p>جهّز سيارتك واختار طور اللعب.</p><div class="item"><div class="car-preview" style="--car:${catalog[data.car].color}"></div><b>${catalog[data.car].name}</b><span class="muted">سيارتك المختارة</span></div><div class="mode-row">${['1 ضد 1','2 ضد 2','3 ضد 3','4 ضد 4'].map(m=>`<button data-mode="${m}" class="${mode===m?'selected':''}">${m}</button>`).join('')}</div><button class="primary" id="playNow">▶️ العب الآن</button><p class="muted">تقدر تلعب ضد الكمبيوتر أو تنشئ غرفة أونلاين من تبويب السيرفرات وتشارك الرمز مع صديقك.</p>`;$('playNow').onclick=()=>{$('lobby').style.display='none';$('gameScreen').style.display='block';window.scrollTo(0,0)};panel.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;render()})}
+if(tab==='shop'){panel.innerHTML=`<h2>🛒 متجر السيارات</h2><p class="muted">اشترِ سيارات جديدة بعملاتك، أو افتح الباكات من تبويب الباكات.</p><div class="cards">${catalog.map((c,i)=>`<div class="item"><div class="car-preview" style="--car:${c.color}"></div><b>${c.icon} ${c.name}</b><span>🪙 ${c.price||'مجانية'}</span><button data-buy="${i}">${data.owned.includes(i)?(data.car===i?'مجهزة':'تجهيز'):(c.price+' شراء')}</button></div>`).join('')}</div>`;panel.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{let i=+b.dataset.buy,c=catalog[i];if(data.owned.includes(i)){data.car=i;save();return}if(data.coins<c.price){alert('عملاتك ما تكفي!');return}data.coins-=c.price;data.owned.push(i);data.car=i;save()})}
+
+if(tab==='packs'){const offers=dailyOffers();panel.innerHTML=`<h2>📦 شوب الباكات اليومي</h2><p class="muted">تتغيّر الباكات والسيارات المعروضة كل 24 ساعة.</p><h3>⏳ التحديث بعد: <span id="packTimer" style="color:#ffe18b">--:--:--</span></h3><div class="cards"><div class="item"><div style="font-size:42px">📦</div><b>الباك العادي</b><span>جوائز من عروض اليوم</span><b>100 كوين</b><button class="primary" id="normalOne">افتح باك واحد</button><b>10 باكات — 900 كوين</b><button id="normalTen">افتح 10 باكات</button></div><div class="item"><div style="font-size:42px">👑</div><b>الباك الأسطوري</b><span>جوائز نادرة من عروض اليوم</span><b>1000 كوين</b><button class="primary" id="legendOne">افتح باك واحد</button><b>10 باكات — 9000 كوين</b><button id="legendTen">افتح 10 باكات</button></div></div><h3>🎁 عروض اليوم</h3><div class="cards">${offers.map((i,n)=>`<div class="item"><div class="car-preview" style="--car:${catalog[i].color}"></div><b>${catalog[i].icon} ${catalog[i].name}</b><span class="muted">${n===0?'عادي':n===1?'مميز':'أسطوري'}</span></div>`).join('')}</div><p class="muted">السيارة المكررة تتحول إلى كوينز تلقائياً.</p>`;[['normalOne','normal',1],['normalTen','normal',10],['legendOne','legend',1],['legendTen','legend',10]].forEach(([id,type,count])=>$(id).onclick=()=>openPack(type,count));updatePackTimer()}
+
+if(tab==='garage'){panel.innerHTML=`<h2>🚘 كراج السيارات</h2><p>اختار السيارة اللي تدخل بيها المباراة.</p><div class="cards">${data.owned.map(i=>`<div class="item"><div class="car-preview" style="--car:${catalog[i].color}"></div><b>${catalog[i].name}</b><button data-equip="${i}">${data.car===i?'مختارة ✓':'اختيار السيارة'}</button></div>`).join('')}</div>`;panel.querySelectorAll('[data-equip]').forEach(b=>b.onclick=()=>{data.car=+b.dataset.equip;save()})}
+if(tab==='servers'){panel.innerHTML=`<h2>🌐 العب أونلاين 1 ضد 1</h2><p>أنشئ غرفة وشارك الرمز مع صديقك، أو ادخل رمز صديقك.</p><div class="item"><b>🏠 إنشاء غرفة</b><button class="primary" id="createRoom">إنشاء غرفة جديدة</button><div id="roomCode" style="font-size:25px;color:#ffe18b;font-weight:900;letter-spacing:4px"></div></div><div class="item" style="margin-top:10px"><b>🔑 الانضمام لغرفة</b><input id="joinCode" maxlength="6" placeholder="اكتب رمز الغرفة" style="padding:12px;border-radius:10px;text-align:center;font-size:20px;width:180px;margin:8px"><button class="primary" id="joinRoom">دخول الغرفة</button></div><p id="onlineStatus" class="muted">الحالة: غير متصل</p><p class="muted">يتطلب إنترنت ومتصفحاً يسمح بالاتصال. افتح اللعبة عبر HTTPS، وأنشئ الغرفة أولاً ثم أرسل الرمز لصديقك. الاتصال يعتمد على خدمة PeerJS العامة وقد يتأثر بالشبكة.</p>`;$('createRoom').onclick=createOnlineRoom;$('joinRoom').onclick=()=>joinOnlineRoom($('joinCode').value)}
+if(tab==='rank'){const tiers=[['🥉','برونزي',0],['🥈','فضي',100],['🥇','ذهبي',250],['💠','بلاتيني',450],['💎','ماسي',700],['🔥','بطل',1000],['👑','أسطوري',1400]];let ri=0;for(let i=0;i<tiers.length;i++)if(data.rankPoints>=tiers[i][2])ri=i;const cur=tiers[ri],next=tiers[Math.min(ri+1,tiers.length-1)],pct=ri===tiers.length-1?100:Math.max(0,Math.min(100,(data.rankPoints-cur[2])/(next[2]-cur[2])*100));panel.innerHTML=`<h2>🏆 رانك عراق روكت</h2><div class="item"><div style="font-size:55px">${cur[0]}</div><h2>${cur[1]}</h2><b>${data.rankPoints} نقطة رانك</b><div class="progress" style="width:100%"><span style="width:${pct}%"></span></div><span class="muted">${ri===tiers.length-1?'وصلت أعلى رتبة!':`تحتاج ${next[2]-data.rankPoints} نقطة للوصول إلى ${next[1]}`}</span></div><button class="primary" id="rankPlay">⚔️ دخول كيم أونلاين رانك — لاعب عشوائي</button><button id="rankCancel" style="padding:10px 14px;margin:8px">إلغاء البحث</button><p id="rankStatus" class="muted">اضغط للبحث عن لاعب عشوائي أونلاين.</p><h3>الرتب</h3><div class="cards">${tiers.map(t=>`<div class="item"><div style="font-size:28px">${t[0]}</div><b>${t[1]}</b><span class="muted">${t[2]}+ نقطة</span></div>`).join('')}</div><p class="muted">الفوز +25 نقطة رانك • الخسارة -10 نقاط</p>`;$('rankPlay').onclick=startRankMatchmaking;$('rankCancel').onclick=stopRankMatchmaking}
+if(tab==='pass'){let lvl=1+Math.floor(data.xp/100);panel.innerHTML=`<h2>🎟️ الرويال باس</h2><p>اجمع نقاط الخبرة وارفع مستواك وافتح مكافآت.</p><h3>المستوى ${lvl} — ${data.xp%100}/100 XP</h3><div class="progress"><span style="width:${data.xp%100}%"></span></div><div class="cards">${[1,2,3,4,5].map(n=>`<div class="item"><b>المستوى ${n}</b><span>${n===1?'🪙 100':n===2?'🎨 لون جديد':n===3?'🪙 250':n===4?'✨ ملصق':'👑 إطار ذهبي'}</span><button data-reward="${n}" ${lvl<n||data.claimed.includes(n)?'disabled':''}>${data.claimed.includes(n)?'تم الاستلام':lvl>=n?'استلام':'مقفل'}</button></div>`).join('')}</div><p class="muted">مكافآت تجريبية داخل اللعبة — لا توجد مشتريات حقيقية.</p>`;panel.querySelectorAll('[data-reward]').forEach(b=>b.onclick=()=>{let n=+b.dataset.reward;if(lvl<n||data.claimed.includes(n))return;data.claimed.push(n);data.coins+=n===1?100:n===3?250:0;save()})}}
+function dailyOffers(){const day=Math.floor(Date.now()/86400000);return [0,1,2].map((_,n)=>(day*7+n*3+Math.floor(day/5))%catalog.length)}
+function updatePackTimer(){const el=$('packTimer');if(!el)return;const next=(Math.floor(Date.now()/86400000)+1)*86400000,left=Math.max(0,next-Date.now());const h=String(Math.floor(left/3600000)).padStart(2,'0'),m=String(Math.floor(left%3600000/60000)).padStart(2,'0'),sec=String(Math.floor(left%60000/1000)).padStart(2,'0');el.textContent=`${h}:${m}:${sec}`}
+setInterval(updatePackTimer,1000);
+function openPack(type,count){const price=(type==='normal'?100:1000)*(count===10?9:1);if(data.coins<price){alert('كويناتك ما تكفي!');return}data.coins-=price;const offers=dailyOffers(),pool=type==='normal'?offers.slice(0,2):offers.slice(1),won=[];for(let n=0;n<count;n++){const i=pool[Math.floor(Math.random()*pool.length)];if(!data.owned.includes(i)){data.owned.push(i);won.push(catalog[i].name)}else{const bonus=type==='normal'?50:250;data.coins+=bonus;won.push('+'+bonus+' كوين')}}save();alert('🎉 جوائزك: '+won.join('، '))}
+let onlinePeer=null;const net=window.iraqNet={conn:null,role:null,input:{x:0,y:0,turbo:false,jump:false},sendClock:0};
+function onlineStatus(t){const el=$('onlineStatus');if(el)el.textContent='الحالة: '+t}
+function startOnlineMatch(){if(window.iraqGame)window.iraqGame.start();$('lobby').style.display='none';$('gameScreen').style.display='block';window.scrollTo(0,0);onlineStatus('متصل — المباراة بدأت')}
+function attachOnlineConnection(conn,role){net.conn=conn;net.role=role;conn.on('open',()=>{onlineStatus('متصل بالخصم');startOnlineMatch()});conn.on('data',data=>{if(net.role==='host'&&data.type==='input')net.input=data.input||net.input;else if(net.role==='client'&&data.type==='state'&&window.iraqGame)window.iraqGame.applyState(data.state)});conn.on('close',()=>{onlineStatus('انقطع اتصال الخصم');net.conn=null;net.role=null});conn.on('error',e=>onlineStatus('مشكلة اتصال: '+(e.type||'حاول ثانية')))}
+function createOnlineRoom(){if(!window.Peer){alert('تعذر تحميل خدمة الاتصال. تأكد من الإنترنت وافتح الملف بمتصفح.');return}const code=String(Math.floor(100000+Math.random()*900000));onlineStatus('جاري إنشاء الغرفة...');net.role='host';onlinePeer=new Peer('iraqrocket-'+code);onlinePeer.on('open',()=>{$('roomCode').textContent=code;onlineStatus('الغرفة جاهزة — انتظر صديقك')});onlinePeer.on('connection',conn=>{if(net.conn){conn.close();return}attachOnlineConnection(conn,'host')});onlinePeer.on('error',e=>{net.role=null;onlineStatus('فشل إنشاء الغرفة: '+e.type);alert('فشل إنشاء الغرفة، جرّب مرة ثانية')})}
+function joinOnlineRoom(raw){const code=String(raw||'').replace(/\D/g,'');if(code.length!==6){alert('اكتب رمزاً من 6 أرقام');return}if(!window.Peer){alert('تعذر تحميل خدمة الاتصال. تأكد من الإنترنت وافتح الملف بمتصفح.');return}onlineStatus('جاري الاتصال...');net.role='client';onlinePeer=new Peer();onlinePeer.on('open',()=>attachOnlineConnection(onlinePeer.connect('iraqrocket-'+code,{reliable:true}),'client'));onlinePeer.on('error',e=>{net.role=null;onlineStatus('فشل الاتصال: '+e.type);alert('تعذر الاتصال. تأكد من الرمز وأن المضيف فاتح الغرفة')})}
+let rankPeer=null,rankPoll=null,rankConnecting=false;
+function rankStatus(t){const e=$('rankStatus');if(e)e.textContent=t;}
+function stopRankMatchmaking(){if(rankPoll){clearInterval(rankPoll);rankPoll=null}rankConnecting=true;if(rankPeer){try{rankPeer.destroy()}catch(e){}rankPeer=null}rankConnecting=false;rankStatus('تم إلغاء البحث عن لاعب.');}
+function startRankMatchmaking(){if(!window.Peer){rankStatus('تعذر تحميل الاتصال. تأكد من الإنترنت.');return}stopRankMatchmaking();rankConnecting=false;rankStatus('جاري الاتصال والبحث عن لاعب عشوائي...');const id='iraqrocket-rank-'+Math.random().toString(36).slice(2,12);rankPeer=new Peer(id);onlinePeer=rankPeer;rankPeer.on('open',()=>{rankStatus('متصل بخدمة البحث — نبحث عن خصم...');rankPeer.on('connection',conn=>{if(rankConnecting||net.conn){conn.close();return}if(!String(conn.peer).startsWith('iraqrocket-rank-')){conn.close();return}rankConnecting=true;if(rankPoll){clearInterval(rankPoll);rankPoll=null}attachOnlineConnection(conn,'host')});rankPoll=setInterval(()=>{if(!rankPeer||rankConnecting)return;if(typeof rankPeer.listAllPeers!=='function'){rankStatus('خدمة البحث العشوائي غير متاحة حالياً على خادم الاتصال.');clearInterval(rankPoll);rankPoll=null;return}rankPeer.listAllPeers(peers=>{if(!Array.isArray(peers)||rankConnecting)return;const candidates=peers.filter(x=>String(x).startsWith('iraqrocket-rank-')&&x>id).sort();if(!candidates.length)return;rankConnecting=true;clearInterval(rankPoll);rankPoll=null;rankStatus('لقينا لاعب! جاري الاتصال...');const conn=rankPeer.connect(candidates[0],{reliable:true});attachOnlineConnection(conn,'client')})},2200)});rankPeer.on('error',e=>{rankStatus('تعذر البحث عن لاعب: '+(e.type||'خطأ اتصال')+'. جرّب مرة ثانية.');if(rankPoll){clearInterval(rankPoll);rankPoll=null}})}
+window.sahatRankResult=won=>{data.rankPoints=Math.max(0,(data.rankPoints||0)+(won?25:-10));localStorage.setItem('sahatProfile',JSON.stringify(data));};
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render()});render();window.sahatReward=()=>{data.coins+=100;data.xp+=35;save()};
+})();
+</script>
+<script>
+(()=>{
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d'),W=960,H=540;
+const scoreNode=document.getElementById('score'),msg=document.getElementById('message');
+const keys={up:false,down:false,left:false,right:false,turbo:false,jump:false,padTurbo:false,padJump:false};
+let score=[0,0],paused=false,player,bot,ball,boost=100,jumpTimer=0,botJump=0,goalFlash=0,last=0,matchTime=180,finished=false;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const car=(x,y,color,angle)=>({x,y,vx:0,vy:0,color,a:angle,z:0,vz:0,hitCd:0});
+function resetPositions(){
+ player=car(230,H/2,(['#28c8ff','#ff594d','#42e39b','#ffd34d','#b78cff','#f2fbff','#ff72c6','#343a52','#ff8a32','#20d6c7','#c9143d'][Math.min(10,JSON.parse(localStorage.getItem('sahatProfile')||'{"car":0}').car||0)]),0);bot=car(730,H/2,'#ff5a64',Math.PI);
+ ball={x:W/2,y:H/2,vx:0,vy:0,r:16,z:0,vz:0};
+ boost=100;jumpTimer=0;botJump=0;
+}
+function reset(){finished=false;score=[0,0];scoreNode.textContent='0 - 0';matchTime=180;paused=false;document.getElementById('pause').textContent='إيقاف مؤقت';msg.style.display='none';resetPositions()}
+resetPositions();
+window.iraqGame={start:()=>reset(),applyState:s=>{Object.assign(player,s.player);Object.assign(bot,s.bot);Object.assign(ball,s.ball);score=s.score;scoreNode.textContent=score[0]+' - '+score[1];matchTime=s.matchTime;boost=s.boost;if(matchTime<=0&&!finished){finished=true;if(window.sahatRankResult)window.sahatRankResult(score[0]>score[1])}}};
+const net=window.iraqNet;
+function say(t){msg.textContent=t;msg.style.display='block';setTimeout(()=>{if(!paused)msg.style.display='none'},1000)}
+function scoreGoal(side){score[side]++;scoreNode.textContent=score[0]+' - '+score[1];goalFlash=1;say(side===0?'⚽ هدف لك!':'⚽ الكمبيوتر سجّل!');resetPositions()}
+function moveCar(p,ix,iy,dt,isBot=false,remoteTurbo=false){
+ let mag=Math.hypot(ix,iy);if(mag>1){ix/=mag;iy/=mag}
+ if(mag>.08){
+  const target=Math.atan2(iy,ix),d=Math.atan2(Math.sin(target-p.a),Math.cos(target-p.a));
+  p.a+=clamp(d,-4.6*dt,4.6*dt);
+ }
+ const facingX=Math.cos(p.a),facingY=Math.sin(p.a);
+ let forward=ix*facingX+iy*facingY;
+ let side=-ix*facingY+iy*facingX;
+ let turbo=(isBot?remoteTurbo:(keys.turbo||keys.padTurbo))&&boost>0&&mag>.1;
+ const accel=(turbo?560:350);
+ p.vx+=facingX*forward*accel*dt + (-facingY)*side*220*dt;
+ p.vy+=facingY*forward*accel*dt + facingX*side*220*dt;
+ p.vx*=Math.pow(.982,dt*60);p.vy*=Math.pow(.982,dt*60);
+ let speed=Math.hypot(p.vx,p.vy),max=turbo?480:300;
+ if(speed>max){p.vx*=max/speed;p.vy*=max/speed}
+ if(turbo)boost=Math.max(0,boost-34*dt);else if(!isBot)boost=Math.min(100,boost+13*dt);
+ p.x+=p.vx*dt;p.y+=p.vy*dt;
+ p.x=clamp(p.x,52,W-52);p.y=clamp(p.y,48,H-48);
+ if(p.hitCd>0)p.hitCd-=dt;
+}
+function bumpBall(p,power=1){
+ let dx=ball.x-p.x,dy=ball.y-p.y,d=Math.hypot(dx,dy),min=42;
+ if(d<min){
+  if(d<.001){dx=1;dy=0;d=1}
+  const nx=dx/d,ny=dy/d,over=min-d;
+  ball.x+=nx*over;ball.y+=ny*over;
+  const rel=(p.vx-ball.vx)*nx+(p.vy-ball.vy)*ny;
+  if(rel>0) {ball.vx+=nx*(rel*1.55+125)*power;ball.vy+=ny*(rel*1.55+125)*power}
+  if(p.z>.25&&p.hitCd<=0){ball.vz=Math.max(ball.vz,190);ball.vx+=nx*75;ball.vy+=ny*75;p.hitCd=.35}
+ }
+}
+function update(dt){
+ // يد تحكم USB/Bluetooth: العصا اليسرى + A للقفز + R2 أو X للتيربو
+ let pad=null;try{const pads=navigator.getGamepads?navigator.getGamepads():[];pad=Array.from(pads).find(g=>g&&g.connected)}catch(e){}
+ const ax=pad?pad.axes[0]||0:0, ay=pad?pad.axes[1]||0:0;
+ let ix=(keys.right?1:0)-(keys.left?1:0),iy=(keys.down?1:0)-(keys.up?1:0);
+ if(pad){if(Math.abs(ax)>.18)ix=Math.abs(ax)>Math.abs(ix)?ax:ix;if(Math.abs(ay)>.18)iy=Math.abs(ay)>Math.abs(iy)?ay:iy;
+   keys.padJump=!!pad.buttons[0]?.pressed;keys.padTurbo=!!(pad.buttons[7]?.pressed||pad.buttons[2]?.pressed);
+ }else{keys.padJump=false;keys.padTurbo=false;}
+ let jumpPressed=keys.jump||keys.padJump,turboPressed=keys.turbo||keys.padTurbo;
+ // اللاعب المنضم يرسل أوامره للمضيف ويعرض حالة المباراة القادمة منه
+ if(net.role==='client'&&net.conn&&net.conn.open){net.sendClock+=dt;if(net.sendClock>=.03){net.sendClock=0;net.conn.send({type:'input',input:{x:ix,y:iy,turbo:turboPressed,jump:jumpPressed}})}return}
+ moveCar(player,ix,iy,dt);
+ if(jumpPressed&&jumpTimer<=0){player.vz=290;jumpTimer=.65}
+ if(jumpTimer>0)jumpTimer-=dt;
+ player.z+=player.vz*dt;player.vz-=720*dt;if(player.z<0){player.z=0;player.vz=0}
+  // الخصم لاعب حقيقي في الغرفة، وإلا يتحكم به الكمبيوتر
+  let dx,dy,d,bx,by;
+  if(net.role==='host'&&net.conn&&net.conn.open){bx=net.input.x||0;by=net.input.y||0;moveCar(bot,bx,by,dt,true,!!net.input.turbo);if(net.input.jump&&botJump<=0){bot.vz=290;botJump=.65}}
+  else{let tx=ball.x,ty=ball.y;if(ball.x>W*.45){tx=ball.x+24;ty=ball.y+(H/2-ball.y)*.12}dx=tx-bot.x;dy=ty-bot.y;d=Math.hypot(dx,dy)||1;bx=dx/d;by=dy/d;if(ball.x<W*.28){bx=-.85;by=(H/2-bot.y)/Math.max(100,Math.abs(H/2-bot.y))*0.55}moveCar(bot,bx,by,dt,true);if(Math.random()<.003&&d<130&&botJump<=0){bot.vz=240;botJump=.9}}
+  if(botJump>0)botJump-=dt;bot.z+=bot.vz*dt;bot.vz-=720*dt;if(bot.z<0){bot.z=0;bot.vz=0}
+ bumpBall(player,player.z>0?1.3:1);bumpBall(bot,bot.z>0?1.2:1);
+ // كرة مع ارتفاع وقوة الجاذبية
+ ball.x+=ball.vx*dt;ball.y+=ball.vy*dt;ball.z+=ball.vz*dt;ball.vz-=480*dt;
+ if(ball.z<0){ball.z=0;ball.vz=Math.abs(ball.vz)*.42;if(Math.abs(ball.vz)<28)ball.vz=0}
+ ball.vx*=Math.pow(.991,dt*60);ball.vy*=Math.pow(.991,dt*60);
+ if(ball.y-ball.r<20){ball.y=20+ball.r;ball.vy=Math.abs(ball.vy)*.82}
+ if(ball.y+ball.r>H-20){ball.y=H-20-ball.r;ball.vy=-Math.abs(ball.vy)*.82}
+ const goalTop=H/2-100,goalBottom=H/2+100;
+ if(ball.x-ball.r<30){
+  if(ball.y>goalTop&&ball.y<goalBottom&&ball.z<95){scoreGoal(1);return}
+  ball.x=30+ball.r;ball.vx=Math.abs(ball.vx)*.82
+ }
+ if(ball.x+ball.r>W-30){
+  if(ball.y>goalTop&&ball.y<goalBottom&&ball.z<95){scoreGoal(0);return}
+  ball.x=W-30-ball.r;ball.vx=-Math.abs(ball.vx)*.82
+ }
+ if(goalFlash>0)goalFlash-=dt;
+ matchTime-=dt;
+ if(matchTime<=0){paused=true;if(!finished){finished=true;if(window.sahatReward)window.sahatReward();if(net.role&&window.sahatRankResult)window.sahatRankResult(score[0]>score[1])}say(score[0]>score[1]?'🏆 فزت بالمباراة!':score[0]<score[1]?'انتهت المباراة — الكمبيوتر فاز':'تعادل!');document.getElementById('pause').textContent='متابعة'}
+  if(net.role==='host'&&net.conn&&net.conn.open){net.sendClock+=dt;if(net.sendClock>.045){net.sendClock=0;net.conn.send({type:'state',state:{player:{x:player.x,y:player.y,vx:player.vx,vy:player.vy,a:player.a,z:player.z},bot:{x:bot.x,y:bot.y,vx:bot.vx,vy:bot.vy,a:bot.a,z:bot.z},ball:{x:ball.x,y:ball.y,vx:ball.vx,vy:ball.vy,z:ball.z,vz:ball.vz},score,matchTime,boost}})}}
+}
+function roundedRect(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()}
+function drawField(){
+ // أرضية الملعب مع عشب متدرج وخطوط قصّ واضحة
+ const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0b493d');bg.addColorStop(.5,'#16845c');bg.addColorStop(1,'#073f36');ctx.fillStyle=bg;ctx.fillRect(-80,-80,W+160,H+160);
+ // محيط الملعب والمدرجات
+ ctx.fillStyle='#14283a';ctx.fillRect(0,0,W,H);
+ ctx.fillStyle='#203c50';ctx.fillRect(12,8,W-24,H-16);
+ ctx.fillStyle='#263f50';for(let i=0;i<24;i++){ctx.fillRect(24+i*39,8,20,9);ctx.fillRect(24+i*39,H-17,20,9)}
+ const turf=ctx.createLinearGradient(0,20,0,H-20);turf.addColorStop(0,'#16875c');turf.addColorStop(1,'#0b684b');ctx.fillStyle=turf;ctx.fillRect(30,20,W-60,H-40);
+ for(let i=0;i<10;i++){ctx.fillStyle=i%2?'#ffffff0c':'#002c1b12';ctx.fillRect(30+i*90,20,90,H-40)}
+ // نسيج عشب خفيف
+ ctx.save();ctx.globalAlpha=.12;ctx.strokeStyle='#d9ffe7';ctx.lineWidth=1;for(let x=42;x<W-35;x+=24){ctx.beginPath();ctx.moveTo(x,28);ctx.lineTo(x+7,H-28);ctx.stroke()}ctx.restore();
+ // خطوط الملعب
+ ctx.strokeStyle='#eafff2';ctx.lineWidth=3;ctx.strokeRect(30,20,W-60,H-40);
+ ctx.beginPath();ctx.moveTo(W/2,20);ctx.lineTo(W/2,H-20);ctx.stroke();
+ ctx.beginPath();ctx.arc(W/2,H/2,84,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(W/2,H/2,5,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+ ctx.strokeRect(30,H/2-125,115,250);ctx.strokeRect(W-145,H/2-125,115,250);ctx.strokeRect(30,H/2-72,45,144);ctx.strokeRect(W-75,H/2-72,45,144);
+ // مرميان مع شبك وظلال
+ for(const side of [0,1]){const gx=side?W-34:0,gy=H/2-100;ctx.fillStyle=side?'#ff5265':'#36c7ff';ctx.fillRect(gx,gy,34,200);ctx.save();ctx.strokeStyle='#ffffff88';ctx.lineWidth=1;for(let yy=gy+8;yy<gy+200;yy+=13){ctx.beginPath();ctx.moveTo(gx,yy);ctx.lineTo(gx+34,yy);ctx.stroke()}for(let xx=gx+7;xx<gx+34;xx+=9){ctx.beginPath();ctx.moveTo(xx,gy);ctx.lineTo(xx,gy+200);ctx.stroke()}ctx.restore();ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.strokeRect(gx,gy,34,200)}
+ // أضواء الملعب
+ for(const x of [75,W-75]){ctx.fillStyle='#e8fbff';ctx.beginPath();ctx.arc(x,36,5,0,Math.PI*2);ctx.fill();ctx.shadowColor='#b9f5ff';ctx.shadowBlur=16;ctx.fill();ctx.shadowBlur=0}
+}
+function drawCar(p,isPlayer){
+ ctx.save();ctx.translate(p.x,p.y);
+ // ظل ناعم يتغير مع ارتفاع السيارة
+ ctx.fillStyle='#00140f55';ctx.beginPath();ctx.ellipse(0,12,30,18,0,0,Math.PI*2);ctx.fill();
+ if(p.z>0){ctx.translate(0,-p.z*.38);ctx.scale(1+p.z/1000,1+p.z/1000)}
+ ctx.rotate(p.a);
+ // هالة خفيفة ولون معدني
+ ctx.shadowColor=p.color;ctx.shadowBlur=10;ctx.fillStyle='#080f19';roundedRect(-27,-20,16,12,4);roundedRect(11,-20,16,12,4);roundedRect(-27,8,16,12,4);roundedRect(11,8,16,12,4);ctx.shadowBlur=0;
+ const grad=ctx.createLinearGradient(0,-20,0,20);grad.addColorStop(0,'#ffffff');grad.addColorStop(.16,p.color);grad.addColorStop(.72,p.color);grad.addColorStop(1,'#101d2c');
+ ctx.fillStyle=grad;roundedRect(-27,-17,54,34,10);
+ ctx.strokeStyle='#ffffffaa';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(-27,-17,54,34,10);ctx.stroke();
+ // زجاج أمامي وسقف بانورامي
+ const glass=ctx.createLinearGradient(-5,-13,12,13);glass.addColorStop(0,'#e9fbff');glass.addColorStop(.45,'#76b9d2');glass.addColorStop(1,'#17374c');ctx.fillStyle=glass;roundedRect(-5,-12,20,24,6);
+ ctx.fillStyle='#ffffff55';ctx.fillRect(-2,-10,3,20);
+ // جناح خلفي وخطوط جانبية
+ ctx.fillStyle='#101c2a';ctx.fillRect(-27,-13,5,26);ctx.fillStyle='#d9f7ff';ctx.fillRect(20,-12,5,7);ctx.fillRect(20,5,5,7);
+ ctx.fillStyle=isPlayer?'#baf4ff':'#ffd0d0';ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=8;ctx.fillRect(-26,-12,4,7);ctx.fillRect(-26,5,4,7);ctx.shadowBlur=0;
+ ctx.restore();
+}
+function draw(){
+ // كاميرا علوية تلاحق الكرة وتبقيها في منتصف الشاشة
+ ctx.fillStyle='#116b54';ctx.fillRect(0,0,W,H);
+ const camX=W/2-ball.x;
+ const camY=H/2-ball.y;
+ ctx.save();ctx.translate(W/2,H/2);ctx.scale(1.08,1.08);ctx.translate(-W/2,-H/2);ctx.translate(camX,camY);
+ drawField();
+ drawCar(player,true);drawCar(bot,false);
+ // الكرة تظهر من الأعلى مع ظل يوضح ارتفاعها
+ ctx.fillStyle='#00140f66';ctx.beginPath();ctx.ellipse(ball.x,ball.y+ball.z*.35,ball.r*1.25,ball.r*.8,0,0,Math.PI*2);ctx.fill();
+ ctx.save();ctx.translate(ball.x,ball.y-ball.z*.35);
+ const ballGrad=ctx.createRadialGradient(-6,-7,2,0,0,ball.r+2);ballGrad.addColorStop(0,'#ffffff');ballGrad.addColorStop(.72,'#f5f7fa');ballGrad.addColorStop(1,'#9ba9b7');ctx.fillStyle=ballGrad;ctx.beginPath();ctx.arc(0,0,ball.r,0,Math.PI*2);ctx.fill();
+ ctx.save();ctx.beginPath();ctx.arc(0,0,ball.r-1,0,Math.PI*2);ctx.clip();ctx.fillStyle='#26394d';ctx.beginPath();ctx.moveTo(0,-7);ctx.lineTo(7,-2);ctx.lineTo(4,7);ctx.lineTo(-5,7);ctx.lineTo(-8,-2);ctx.closePath();ctx.fill();for(let a=0;a<5;a++){const ang=a*Math.PI*2/5;ctx.beginPath();ctx.arc(Math.cos(ang)*13,Math.sin(ang)*13,4,0,Math.PI*2);ctx.fill()}ctx.restore();
+ ctx.strokeStyle='#42566b';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,ball.r,0,Math.PI*2);ctx.stroke();ctx.restore();ctx.restore();
+ // عناصر الشاشة الثابتة
+ ctx.fillStyle='#ffffff';ctx.font='bold 17px system-ui';ctx.textAlign='center';ctx.fillText('⏱ '+Math.max(0,Math.ceil(matchTime)),W/2,22);
+ ctx.font='12px system-ui';ctx.textAlign='left';ctx.fillText('TURBO',38,H-7);
+ ctx.fillStyle='#071b2b';ctx.fillRect(92,H-18,120,10);ctx.fillStyle='#ffd36a';ctx.fillRect(92,H-18,120*boost/100,10);
+ if(paused){ctx.fillStyle='#00101dcc';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.font='bold 42px system-ui';ctx.textAlign='center';ctx.fillText('إيقاف مؤقت',W/2,H/2)}
+}
+function loop(t){let dt=Math.min((t-last)/1000||0,.033);last=t;if(!paused)update(dt);draw();requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+// جوستك لمس
+const stick=document.getElementById('stick'),knob=document.getElementById('knob');let pointer=null;
+function stickMove(e){
+ const r=stick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+ let dx=e.clientX-cx,dy=e.clientY-cy,L=Math.hypot(dx,dy),lim=r.width*.29;
+ if(L>lim){dx=dx/L*lim;dy=dy/L*lim}
+ knob.style.left=(r.width*.29+dx)+'px';knob.style.top=(r.height*.29+dy)+'px';
+ const dead=7;keys.left=dx < -dead;keys.right=dx > dead;keys.up=dy < -dead;keys.down=dy > dead;
+}
+function stickReset(){pointer=null;knob.style.left='29%';knob.style.top='29%';keys.left=keys.right=keys.up=keys.down=false}
+stick.addEventListener('pointerdown',e=>{e.preventDefault();pointer=e.pointerId;stick.setPointerCapture(e.pointerId);stickMove(e)});
+stick.addEventListener('pointermove',e=>{if(pointer===e.pointerId)stickMove(e)});
+stick.addEventListener('pointerup',stickReset);stick.addEventListener('pointercancel',stickReset);
+function holdButton(el,key){el.addEventListener('pointerdown',e=>{e.preventDefault();keys[key]=true;el.setPointerCapture(e.pointerId)});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>el.addEventListener(ev,()=>keys[key]=false))}
+holdButton(document.getElementById('turbo'),'turbo');
+document.getElementById('jump').addEventListener('pointerdown',e=>{e.preventDefault();keys.jump=true});
+['pointerup','pointercancel','lostpointercapture'].forEach(ev=>document.getElementById('jump').addEventListener(ev,()=>keys.jump=false));
+window.addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();
+ if(e.key==='ArrowUp'||e.key==='w')keys.up=true;if(e.key==='ArrowDown'||e.key==='s')keys.down=true;
+ if(e.key==='ArrowLeft'||e.key==='a')keys.left=true;if(e.key==='ArrowRight'||e.key==='d')keys.right=true;
+ if(e.key===' ')keys.turbo=true;if(e.key==='Shift')keys.jump=true});
+window.addEventListener('keyup',e=>{if(e.key==='ArrowUp'||e.key==='w')keys.up=false;if(e.key==='ArrowDown'||e.key==='s')keys.down=false;
+ if(e.key==='ArrowLeft'||e.key==='a')keys.left=false;if(e.key==='ArrowRight'||e.key==='d')keys.right=false;
+ if(e.key===' ')keys.turbo=false;if(e.key==='Shift')keys.jump=false});
+const fsButton=document.getElementById('fullscreen');
+fsButton.addEventListener('click',async()=>{
+ const target=document.querySelector('.game-wrap');
+ try{
+  if(document.fullscreenElement){await document.exitFullscreen();}
+  else if(target.requestFullscreen){await target.requestFullscreen();}
+  else if(target.webkitRequestFullscreen){target.webkitRequestFullscreen();}
+  else {alert('هذا المتصفح لا يدعم تكبير الشاشة الكامل. جرّب فتح اللعبة بمتصفح Chrome أو Safari.');}
+ }catch(err){alert('ما قدرنا نفتح ملء الشاشة. جرّب تدوير الجهاز أو متصفح آخر.');}
+});
+document.addEventListener('fullscreenchange',()=>{fsButton.textContent=document.fullscreenElement?'⤢ تصغير الشاشة':'⛶ تكبير الشاشة';});
+document.getElementById('pause').onclick=()=>{paused=!paused;document.getElementById('pause').textContent=paused?'متابعة':'إيقاف مؤقت';if(!paused)msg.style.display='none'};
+document.getElementById('reset').onclick=reset;
+document.getElementById('backLobby').onclick=()=>{if(window.iraqNet&&window.iraqNet.conn){try{window.iraqNet.conn.close()}catch(e){}window.iraqNet.conn=null;window.iraqNet.role=null}paused=true;document.getElementById('gameScreen').style.display='none';document.getElementById('lobby').style.display='block';window.scrollTo(0,0)};
+})();
+</script></body></html>
